@@ -1,0 +1,69 @@
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.8.0;
+
+contract NSCContract {
+    address public owner;
+    mapping(address => uint) public balances;
+    mapping(address => mapping(address => uint)) public allowance;
+    uint public totalSupply;
+
+    string public constant name = "NSC Token";
+    string public constant symbol = "NSC";
+    uint8 public constant decimals = 18;
+
+    event Transfer(address indexed from, address indexed to, uint value);
+    event Approval(address indexed owner, address indexed spender, uint value);
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only the owner can call this function.");
+        _;
+    }
+
+    constructor() {
+        owner = msg.sender;
+        totalSupply = 1000000 * 10 ** decimals; // Total supply of 1,000,000 tokens
+        balances[owner] = totalSupply;
+    }
+
+    function transfer(address to, uint value) external returns (bool) {
+        require(balances[msg.sender] >= value, "Insufficient balance.");
+        balances[msg.sender] -= value;
+        balances[to] += value;
+        emit Transfer(msg.sender, to, value);
+        return true;
+    }
+
+    function approve(address spender, uint value) external returns (bool) {
+        allowance[msg.sender][spender] = value;
+        emit Approval(msg.sender, spender, value);
+        return true;
+    }
+
+    function transferFrom(address from, address to, uint value) external returns (bool) {
+        require(balances[from] >= value, "Insufficient balance.");
+        require(allowance[from][msg.sender] >= value, "Allowance exceeded.");
+        balances[from] -= value;
+        balances[to] += value;
+        allowance[from][msg.sender] -= value;
+        emit Transfer(from, to, value);
+        return true;
+    }
+
+    function mint(address to, uint value) external onlyOwner {
+        totalSupply += value;
+        balances[to] += value;
+        emit Transfer(address(0), to, value);
+    }
+
+    function burn(uint value) external {
+        require(balances[msg.sender] >= value, "Insufficient balance.");
+        totalSupply -= value;
+        balances[msg.sender] -= value;
+        emit Transfer(msg.sender, address(0), value);
+    }
+
+    function setOwner(address newOwner) external onlyOwner {
+        owner = newOwner;
+    }
+}
