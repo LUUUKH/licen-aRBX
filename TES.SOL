@@ -67,3 +67,62 @@ contract NSCContract {
         owner = newOwner;
     }
 }
+contract POSHProtocol {
+    mapping(address => uint) public stakedBalances;
+    uint public totalStaked;
+
+    event Staked(address indexed staker, uint amount);
+    event Unstaked(address indexed staker, uint amount);
+
+    function stake(uint amount) external {
+        require(amount > 0, "Amount must be greater than zero.");
+        require(balanceOf(msg.sender) >= amount, "Insufficient balance.");
+
+        stakedBalances[msg.sender] += amount;
+        totalStaked += amount;
+
+        // Emitir evento de stake
+        emit Staked(msg.sender, amount);
+    }
+
+    function unstake(uint amount) external {
+        require(amount > 0, "Amount must be greater than zero.");
+        require(stakedBalances[msg.sender] >= amount, "Insufficient staked balance.");
+
+        stakedBalances[msg.sender] -= amount;
+        totalStaked -= amount;
+
+        // Emitir evento de unstake
+        emit Unstaked(msg.sender, amount);
+    }
+
+    function balanceOf(address account) public view returns (uint) {
+        // Retorna o saldo total (staked + não staked) do usuário
+        return balances[account];
+    }
+}
+contract TOSProtocol {
+    mapping(address => uint) public tokenOwnership;
+
+    modifier onlyTokenOwner(uint amount) {
+        require(tokenOwnership[msg.sender] >= amount, "Insufficient token ownership.");
+        _;
+    }
+
+    function updateOwnership(address account, uint newOwnership) internal {
+        tokenOwnership[account] = newOwnership;
+    }
+
+    function transfer(address to, uint value) external onlyTokenOwner(value) returns (bool) {
+        // Transferência de tokens
+    }
+
+    function approve(address spender, uint value) external returns (bool) {
+        // Aprovação de gastos
+    }
+
+    function transferFrom(address from, address to, uint value) external returns (bool) {
+        // Transferência de tokens permitida por terceiros
+    }
+}
+
