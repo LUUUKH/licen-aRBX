@@ -125,4 +125,50 @@ contract TOSProtocol {
         // Transferência de tokens permitida por terceiros
     }
 }
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract NSCGrupRubyxIO {
+    address public owner;
+    mapping(address => bool) public researchers;
+    mapping(address => uint256) public researchFunds;
+    
+    event ResearchFunded(address researcher, uint256 amount);
+    event ResearchConducted(address researcher, string result);
+    
+    constructor() {
+        owner = msg.sender;
+    }
+    
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only the contract owner can call this function");
+        _;
+    }
+    
+    modifier onlyResearcher() {
+        require(researchers[msg.sender], "Only registered researchers can call this function");
+        _;
+    }
+    
+    function registerResearcher(address _researcher) external onlyOwner {
+        researchers[_researcher] = true;
+    }
+    
+    function fundResearch(address _researcher, uint256 _amount) external payable onlyOwner {
+        require(researchers[_researcher], "The researcher is not registered");
+        require(msg.value == _amount, "Incorrect amount sent");
+        
+        researchFunds[_researcher] += _amount;
+        
+        emit ResearchFunded(_researcher, _amount);
+    }
+    
+    function conductResearch(string memory _result) external onlyResearcher {
+        emit ResearchConducted(msg.sender, _result);
+    }
+    
+    function withdrawFunds() external onlyOwner {
+        payable(owner).transfer(address(this).balance);
+    }
+}
 
